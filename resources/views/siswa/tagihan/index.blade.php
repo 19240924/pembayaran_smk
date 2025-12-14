@@ -38,15 +38,19 @@
                     <td>{{ $item->nama_tagihan }}</td>
                     <td>{{ $item->jatuh_tempo }}</td>
                     <td>Rp {{ number_format($item->nominal, 0, ',', '.') }}</td>
+
+                    {{-- STATUS (SUDAH SINKRON DB) --}}
                     <td>
-                        @if ($item->status == 'belum')
+                        @if ($item->status == 'belum_lunas')
                             <span style="color:red;">Belum Dibayar</span>
                         @else
                             <span style="color:green;">Lunas</span>
                         @endif
                     </td>
+
+                    {{-- AKSI --}}
                     <td>
-                        @if ($item->status == 'belum')
+                        @if ($item->status == 'belum_lunas')
                             <a href="{{ route('siswa.tagihan.bayar', $item->id) }}">
                                 <button>Bayar</button>
                             </a>

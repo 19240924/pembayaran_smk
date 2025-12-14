@@ -9,23 +9,32 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
-{
-    Schema::create('tagihan_admins', function (Blueprint $table) {
-        $table->id();
-        // Kolom-kolom sesuai Form Input kamu
-        $table->string('nama_siswa');
-        $table->string('kelas');
-        $table->string('jurusan');       // Baru
-        $table->string('bulan');
-        $table->integer('tahun');
-        $table->string('jenis_pembayaran');
-        $table->decimal('nominal', 15, 0); // Pakai 0 di belakang koma biar bulat
-        $table->text('keterangan')->nullable();
-        $table->string('status')->default('belum_lunas'); // Default otomatis
-        $table->timestamps();
-    });
-}
+    public function up(): void
+    {
+        Schema::create('tagihan_admins', function (Blueprint $table) {
+            $table->id();
+
+            // Data siswa
+            $table->string('nama_siswa');
+            $table->string('kelas');
+            $table->string('jurusan');
+
+            // Data tagihan
+            $table->string('bulan');
+            $table->integer('tahun');
+            $table->string('jenis_pembayaran');
+            $table->decimal('nominal', 15, 0);
+
+            // Tambahan
+            $table->text('keterangan')->nullable();
+
+            // Status pembayaran
+            $table->string('status')->default('belum_lunas');
+
+            $table->timestamps();
+        });
+    }
+
     /**
      * Reverse the migrations.
      */

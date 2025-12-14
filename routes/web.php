@@ -12,15 +12,14 @@ use App\Http\Controllers\Siswa\TagihanController as SiswaTagihanController;
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
-    if (Auth::check()) {
-        return redirect('/dashboard');
-    }
-    return redirect('/login');
+    return Auth::check()
+        ? redirect('/dashboard')
+        : redirect('/login');
 });
 
 /*
 |--------------------------------------------------------------------------
-| LOGIN ROUTES
+| AUTH ROUTES
 |--------------------------------------------------------------------------
 */
 Route::get('/login', function () {
@@ -63,12 +62,12 @@ Route::post('/logout', function (\Illuminate\Http\Request $request) {
 Route::middleware(['auth', SessionTimeout::class])->group(function () {
 
     /*
-    | Dashboard
+    | DASHBOARD
     */
     Route::get('/dashboard', function () {
         $user = Auth::user();
 
-        if ($user->role === 'admin' || $user->role === 'kepsek') {
+        if (in_array($user->role, ['admin', 'kepsek'])) {
             return view('admin.dashboard');
         }
 
@@ -87,10 +86,15 @@ Route::middleware(['auth', SessionTimeout::class])->group(function () {
 
             Route::resource('siswa', \App\Http\Controllers\SiswaController::class);
 
-            // TAGIHAN ADMIN
-            Route::get('/tagihan', [TagihanController::class, 'index'])->name('tagihan.index');
-            Route::get('/tagihan/create', [TagihanController::class, 'create'])->name('tagihan.create');
-            Route::post('/tagihan', [TagihanController::class, 'store'])->name('tagihan.store');
+            // Tagihan Admin
+            Route::get('/tagihan', [TagihanController::class, 'index'])
+                ->name('tagihan.index');
+
+            Route::get('/tagihan/create', [TagihanController::class, 'create'])
+                ->name('tagihan.create');
+
+            Route::post('/tagihan', [TagihanController::class, 'store'])
+                ->name('tagihan.store');
         });
 
     /*
@@ -98,11 +102,12 @@ Route::middleware(['auth', SessionTimeout::class])->group(function () {
     | SISWA ROUTES
     |--------------------------------------------------------------------------
     */
-    Route::prefix('siswa')
+    Route::middleware(['role:siswa'])
+        ->prefix('siswa')
         ->name('siswa.')
         ->group(function () {
 
-            // Halaman daftar tagihan siswa
+            // Daftar tagihan siswa
             Route::get('/tagihan', [SiswaTagihanController::class, 'index'])
                 ->name('tagihan.index');
 
@@ -110,7 +115,7 @@ Route::middleware(['auth', SessionTimeout::class])->group(function () {
             Route::get('/tagihan/{id}/bayar', [SiswaTagihanController::class, 'bayar'])
                 ->name('tagihan.bayar');
 
-            // PROSES KONFIRMASI BAYAR 
+            // PROSES PEMBAYARAN (NAMA ROUTE DISAMAKAN)
             Route::post('/tagihan/{id}/bayar', [SiswaTagihanController::class, 'prosesBayar'])
                 ->name('tagihan.proses');
         });

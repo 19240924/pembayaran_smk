@@ -4,70 +4,45 @@ namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\TagihanAdmin;
 
 class TagihanController extends Controller
 {
+    /**
+     * Tampilkan daftar tagihan siswa (AMBIL DARI DATABASE)
+     */
     public function index()
     {
-        // DATA DUMMY
-        $tagihan = [
-            (object)[
-                'id' => 1,
-                'nama_tagihan' => 'SPP Bulan Januari',
-                'nominal' => 150000,
-                'jatuh_tempo' => '2025-01-10',
-            ],
-            (object)[
-                'id' => 2,
-                'nama_tagihan' => 'SPP Bulan Februari',
-                'nominal' => 150000,
-                'jatuh_tempo' => '2025-02-10',
-            ],
-        ];
-
-        // Ambil ID tagihan yang sudah dibayar dari session
-        $sudahDibayar = session('tagihan_lunas', []);
-
-        // Tambahkan status ke masing-masing tagihan
-        foreach ($tagihan as $item) {
-            $item->status = in_array($item->id, $sudahDibayar)
-                ? 'lunas'
-                : 'belum';
-        }
+        // Ambil semua tagihan (nanti bisa difilter per siswa)
+        $tagihan = TagihanAdmin::orderBy('created_at', 'desc')->get();
 
         return view('siswa.tagihan.index', compact('tagihan'));
     }
 
-    // Halaman bayar
+    /**
+     * Halaman bayar tagihan
+     */
     public function bayar($id)
     {
-        $tagihan = (object) [
-            'id' => $id,
-            'nama_tagihan' => 'SPP Bulan Januari',
-            'nominal' => 150000,
-            'jatuh_tempo' => '2025-01-10',
-            'status' => 'belum',
-        ];
+        $tagihan = TagihanAdmin::findOrFail($id);
 
         return view('siswa.tagihan.bayar', compact('tagihan'));
     }
 
-    // PROSES BAYAR → STATUS LUNAS
+    /**
+     * PROSES KONFIRMASI BAYAR
+     */
     public function prosesBayar($id)
     {
-        // Ambil data lunas sebelumnya
-        $lunas = session('tagihan_lunas', []);
+        $tagihan = TagihanAdmin::findOrFail($id);
 
-        // Tambahkan ID yang baru dibayar
-        if (!in_array($id, $lunas)) {
-            $lunas[] = $id;
-        }
-
-        // Simpan kembali ke session
-        session(['tagihan_lunas' => $lunas]);
+        // Update status jadi LUNAS
+        $tagihan->update([
+            'status' => 'lunas'
+        ]);
 
         return redirect()
             ->route('siswa.tagihan.index')
-            ->with('success', 'Pembayaran berhasil. Status tagihan menjadi LUNAS.');
+            ->with('success', 'Pembayaran berhasil dilakukan');
     }
 }
