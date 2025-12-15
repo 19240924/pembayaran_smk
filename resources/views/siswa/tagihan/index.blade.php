@@ -3,7 +3,7 @@
 @section('content')
 <div style="padding:20px">
 
-    {{-- PESAN SUKSES SETELAH BAYAR --}}
+    {{-- PESAN SUKSES --}}
     @if (session('success'))
         <div style="
             background:#d4edda;
@@ -20,53 +20,54 @@
     <p>Berikut adalah daftar tagihan Anda.</p>
 
     <table border="1" cellpadding="10" cellspacing="0" width="100%">
-        <thead>
+        <thead style="background:#f1f1f1">
             <tr>
                 <th>No</th>
-                <th>Nama Tagihan</th>
-                <th>Jatuh Tempo</th>
+                <th>Jenis Pembayaran</th>
+                <th>Periode</th>
                 <th>Nominal</th>
                 <th>Status</th>
-                <th>Aksi</th>
             </tr>
         </thead>
 
         <tbody>
-            @forelse ($tagihan as $item)
+            @forelse ($tagihans as $item)
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td>{{ $item->nama_tagihan }}</td>
-                    <td>{{ $item->jatuh_tempo }}</td>
-                    <td>Rp {{ number_format($item->nominal, 0, ',', '.') }}</td>
 
-                    {{-- STATUS (SUDAH SINKRON DB) --}}
+                    {{-- Jenis Pembayaran --}}
+                    <td>{{ $item->jenis_pembayaran }}</td>
+
+                    {{-- Periode --}}
+                    <td>{{ $item->bulan }} {{ $item->tahun }}</td>
+
+                    {{-- Nominal --}}
                     <td>
-                        @if ($item->status == 'belum_lunas')
-                            <span style="color:red;">Belum Dibayar</span>
-                        @else
-                            <span style="color:green;">Lunas</span>
-                        @endif
+                        Rp {{ number_format($item->nominal, 0, ',', '.') }}
                     </td>
 
-                    {{-- AKSI --}}
+                    {{-- Status --}}
                     <td>
-                        @if ($item->status == 'belum_lunas')
-                            <a href="{{ route('siswa.tagihan.bayar', $item->id) }}">
-                                <button>Bayar</button>
-                            </a>
+                        @if ($item->status === 'lunas')
+                            <span style="color:green; font-weight:bold;">
+                                Lunas
+                            </span>
                         @else
-                            <span>-</span>
+                            <span style="color:red; font-weight:bold;">
+                                Belum Lunas
+                            </span>
                         @endif
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" style="text-align:center;">
+                    <td colspan="5" style="text-align:center; padding:15px;">
                         Belum ada tagihan
                     </td>
                 </tr>
             @endforelse
         </tbody>
     </table>
+
 </div>
 @endsection

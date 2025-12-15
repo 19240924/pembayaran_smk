@@ -3,46 +3,19 @@
 namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\TagihanAdmin;
 
 class TagihanController extends Controller
 {
-    /**
-     * Tampilkan daftar tagihan siswa (AMBIL DARI DATABASE)
-     */
     public function index()
     {
-        // Ambil semua tagihan (nanti bisa difilter per siswa)
-        $tagihan = TagihanAdmin::orderBy('created_at', 'desc')->get();
+        // ambil nama siswa yang sedang login
+        $namaSiswa = Auth::user()->name;
 
-        return view('siswa.tagihan.index', compact('tagihan'));
-    }
+        // ambil tagihan milik siswa tersebut
+        $tagihans = TagihanAdmin::where('nama_siswa', $namaSiswa)->get();
 
-    /**
-     * Halaman bayar tagihan
-     */
-    public function bayar($id)
-    {
-        $tagihan = TagihanAdmin::findOrFail($id);
-
-        return view('siswa.tagihan.bayar', compact('tagihan'));
-    }
-
-    /**
-     * PROSES KONFIRMASI BAYAR
-     */
-    public function prosesBayar($id)
-    {
-        $tagihan = TagihanAdmin::findOrFail($id);
-
-        // Update status jadi LUNAS
-        $tagihan->update([
-            'status' => 'lunas'
-        ]);
-
-        return redirect()
-            ->route('siswa.tagihan.index')
-            ->with('success', 'Pembayaran berhasil dilakukan');
+        return view('siswa.tagihan.index', compact('tagihans'));
     }
 }
