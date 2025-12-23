@@ -2,78 +2,98 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Tagihan;
-use App\Models\Pembayaran;
 use Illuminate\Http\Request;
 
 class SiswaTagihanController extends Controller
 {
-    // Daftar tagihan siswa
+    /**
+     * HALAMAN LIST TAGIHAN SISWA
+     */
     public function index()
     {
-        // Ambil user login
-        $siswaId = auth()->user()->id;
-
-        // Ambil tagihan untuk siswa tersebut
-        $tagihan = Tagihan::where('siswa_id', $siswaId)->get();
+        $tagihan = [
+            [
+                'id' => 1,
+                'nama' => 'SPP',
+                'jenis' => 'spp',
+                'total' => 600000,
+                'status' => 'Belum Lunas',
+            ],
+            [
+                'id' => 2,
+                'nama' => 'Uang Buku & Modul',
+                'jenis' => 'modul',
+                'total' => 500000,
+                'status' => 'Belum Lunas',
+            ],
+            [
+                'id' => 3,
+                'nama' => 'Uang Bangunan',
+                'jenis' => 'bangunan',
+                'total' => 1250000,
+                'status' => 'Belum Lunas',
+            ],
+        ];
 
         return view('siswa.tagihan.index', compact('tagihan'));
     }
 
-    // Detail tagihan
+    /**
+     * DETAIL TAGIHAN (BEDA TIAP JENIS)
+     */
     public function show($id)
     {
-        $tagihan = Tagihan::findOrFail($id);
+        $data = [
+            1 => [
+                'id' => 1,
+                'nama' => 'SPP',
+                'jenis' => 'spp',
+                'total' => 600000,
+                'rincian' => [
+                    ['label' => 'Januari 2025', 'nominal' => 120000, 'status' => 'Belum Bayar'],
+                    ['label' => 'Februari 2025', 'nominal' => 120000, 'status' => 'Belum Bayar'],
+                    ['label' => 'Maret 2025', 'nominal' => 120000, 'status' => 'Belum Bayar'],
+                    ['label' => 'April 2025', 'nominal' => 120000, 'status' => 'Belum Bayar'],
+                    ['label' => 'Mei 2025', 'nominal' => 120000, 'status' => 'Belum Bayar'],
+                ],
+            ],
 
-        // Pastikan tagihan hanya milik siswa terkait
-        if ($tagihan->siswa_id != auth()->user()->id) {
-            abort(403, "Anda tidak boleh membuka tagihan ini");
+            2 => [
+                'id' => 2,
+                'nama' => 'Uang Buku & Modul',
+                'jenis' => 'modul',
+                'total' => 500000,
+                'rincian' => [
+                    [
+                        'label' => 'Pembayaran Modul Pembelajaran Tahun 2025',
+                        'nominal' => 500000,
+                        'status' => 'Belum Bayar',
+                    ],
+                ],
+            ],
+
+            3 => [
+                'id' => 3,
+                'nama' => 'Uang Bangunan',
+                'jenis' => 'bangunan',
+                'total' => 1250000,
+                'rincian' => [
+                    [
+                        'label' => 'Juni 2025',
+                        'nominal' => 1250000,
+                        'status' => 'Belum Bayar',
+                    ],
+                ],
+            ],
+        ];
+
+        // pengaman kalau ID tidak ada
+        if (!isset($data[$id])) {
+            abort(404);
         }
+
+        $tagihan = $data[$id];
 
         return view('siswa.tagihan.show', compact('tagihan'));
-    }
-
-    // Form bayar tagihan
-    public function bayar($id)
-    {
-        $tagihan = Tagihan::findOrFail($id);
-
-        if ($tagihan->siswa_id != auth()->user()->id) {
-            abort(403);
-        }
-
-        return view('siswa.tagihan.bayar', compact('tagihan'));
-    }
-
-    // Proses pembayaran
-    public function prosesBayar(Request $request, $id)
-    {
-        $tagihan = Tagihan::findOrFail($id);
-
-        if ($tagihan->siswa_id != auth()->user()->id) {
-            abort(403);
-        }
-
-        $request->validate([
-            'metode' => 'required',
-            'bukti' => 'required|image|max:2048', // upload bukti pembayaran
-        ]);
-
-        // Simpan bukti
-        $namaFile = $request->bukti->store('bukti_pembayaran', 'public');
-
-        Pembayaran::create([
-            'tagihan_id' => $id,
-            'siswa_id' => auth()->user()->id,
-            'metode' => $request->metode,
-            'bukti' => $namaFile,
-            'status' => 'menunggu verifikasi'
-        ]);
-
-        // Update status tagihan
-        $tagihan->update(['status' => 'menunggu']);
-
-        return redirect()->route('siswa.tagihan.index')
-                         ->with('success', 'Pembayaran berhasil dikirim, menunggu verifikasi admin.');
     }
 }

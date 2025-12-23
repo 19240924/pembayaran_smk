@@ -15,7 +15,7 @@
         <div class="sidebar p-3">
             <h4>Menu</h4>
             <a href="{{ route('siswa.dashboard') }}">Dashboard</a>
-            <a href="#">Tagihan</a>
+            <a href="{{ route('siswa.tagihan.index') }}">Tagihan</a>
             <a href="#">Riwayat Pembayaran</a>
             <a href="#">Profil</a>
             <form action="{{ route('logout') }}" method="POST" class="mt-3">

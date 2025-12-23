@@ -7,9 +7,8 @@ use App\Http\Controllers\TagihanController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\SiswaController;
-use App\Http\Controllers\SiswaTagihanController; // Controller untuk Siswa Login
+use App\Http\Controllers\SiswaTagihanController;
 use App\Http\Controllers\Siswa\SiswaDashboardController;
-
 
 /*
 |--------------------------------------------------------------------------
@@ -54,85 +53,72 @@ Route::post('/logout', function (\Illuminate\Http\Request $request) {
 
 /*
 |--------------------------------------------------------------------------
-| PROTECTED ROUTES (AUTH + SESSION TIMEOUT)
+| PROTECTED ROUTES
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', SessionTimeout::class])->group(function () {
 
-    // 1. DASHBOARD (Bisa untuk Admin & Siswa)
-     Route::get('/dashboard', function () {
+    /*
+    |--------------------------------------------------------------------------
+    | DASHBOARD (ADMIN & SISWA)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/dashboard', function () {
         $user = Auth::user();
 
-        // admin / kepsek
         if (in_array($user->role, ['admin', 'kepsek'])) {
             return view('admin.dashboard');
         }
 
-        // siswa → arahkan ke controller
         return redirect()->route('siswa.dashboard');
     })->name('dashboard');
 
-
     /*
     |--------------------------------------------------------------------------
-    | GROUP KHUSUS ADMIN & KEPSEK
+    | GROUP ADMIN & KEPSEK
     |--------------------------------------------------------------------------
     */
     Route::middleware(['role:admin,kepsek'])->prefix('admin')->name('admin.')->group(function () {
 
-        // A. Manajemen Siswa
         Route::resource('siswa', SiswaController::class);
 
-        // B. Manajemen Tagihan
-        // 1. Tagihan Manual & Resource
         Route::get('/tagihan/create', [TagihanController::class, 'create'])->name('tagihan.create');
         Route::post('/tagihan', [TagihanController::class, 'store'])->name('tagihan.store');
         Route::get('/tagihan', [TagihanController::class, 'index'])->name('tagihan.index');
-        
-        // 2. Tagihan Massal (Fitur Tambahan Kamu)
+
         Route::get('/tagihan/massal/create', [TagihanController::class, 'createMassal'])->name('tagihan.massal.create');
         Route::post('/tagihan/massal/store', [TagihanController::class, 'storeMassal'])->name('tagihan.massal.store');
 
-        // 3. Edit & Hapus Tagihan
         Route::get('/tagihan/{tagihan}/edit', [TagihanController::class, 'edit'])->name('tagihan.edit');
         Route::put('/tagihan/{tagihan}', [TagihanController::class, 'update'])->name('tagihan.update');
         Route::delete('/tagihan/{tagihan}', [TagihanController::class, 'destroy'])->name('tagihan.destroy');
 
-
-        // C. Manajemen Pembayaran
-        // 1. Cetak Struk (Perorangan)
         Route::get('/pembayaran/{id}/cetak', [PembayaranController::class, 'cetak'])->name('pembayaran.cetak');
-        // 2. Resource Utama
         Route::resource('pembayaran', PembayaranController::class);
 
-
-        // D. Laporan Keuangan (YANG KITA PERBAIKI TADI)
-        // 1. Halaman Utama Laporan
         Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
-
-        // 2. Cetak Laporan Full (PDF)
         Route::get('/laporan/cetak', [LaporanController::class, 'cetak'])->name('laporan.cetak');
-
-        // 3. Detail Laporan Per Kelas (Drill-down)
-        // FIXED: Hapus 'admin.' di sini karena group sudah otomatis nambahin
         Route::get('/laporan/detail/{kelas}/{jurusan}', [LaporanController::class, 'detailKelas'])
-            ->name('laporan.detail'); 
+            ->name('laporan.detail');
     });
-Route::middleware(['auth'])->group(function() {
-    Route::get('/siswa/dashboard', [SiswaDashboardController::class, 'index'])->name('siswa.dashboard');
-});
 
     /*
     |--------------------------------------------------------------------------
-    | GROUP KHUSUS SISWA (Untuk melihat tagihan sendiri)
+    | GROUP KHUSUS SISWA
     |--------------------------------------------------------------------------
     */
-    Route::middleware(['role:siswa'])->group(function () {
-        Route::get('/siswa/tagihan', [SiswaTagihanController::class, 'index'])->name('siswa.tagihan.index');
-        Route::get('/siswa/tagihan/{id}', [SiswaTagihanController::class, 'show'])->name('siswa.tagihan.show');
-        // Jika ada fitur bayar online (opsional)
-        // Route::get('/siswa/tagihan/{id}/bayar', [SiswaTagihanController::class, 'bayar'])->name('siswa.tagihan.bayar');
-        // Route::post('/siswa/tagihan/{id}/bayar', [SiswaTagihanController::class, 'prosesBayar'])->name('siswa.tagihan.proses');
+    Route::middleware(['role:siswa'])->prefix('siswa')->name('siswa.')->group(function () {
+
+        // DASHBOARD SISWA
+        Route::get('/dashboard', [SiswaDashboardController::class, 'index'])
+            ->name('dashboard');
+
+        // TAGIHAN SISWA (BELUM VIEW, BELUM DATABASE)
+        Route::get('/tagihan', [SiswaTagihanController::class, 'index'])
+            ->name('tagihan.index');
+
+        Route::get('/tagihan/{id}', [SiswaTagihanController::class, 'show'])
+            ->name('tagihan.show');
     });
 
 });
