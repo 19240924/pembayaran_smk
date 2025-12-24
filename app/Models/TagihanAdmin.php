@@ -2,14 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class TagihanAdmin extends Model
 {
-    use HasFactory;
-
-    // PENTING: Sambungkan ke tabel barumu
     protected $table = 'tagihan_admins';
 
     protected $fillable = [

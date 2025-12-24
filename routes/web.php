@@ -4,9 +4,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Middleware\SessionTimeout;
 use App\Http\Controllers\TagihanController;
-use App\Http\Controllers\PembayaranController;
-use App\Http\Controllers\LaporanController;
-use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\SiswaTagihanController;
 use App\Http\Controllers\Siswa\SiswaDashboardController;
 
@@ -21,7 +18,7 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| LOGIN & LOGOUT ROUTES
+| LOGIN ROUTES
 |--------------------------------------------------------------------------
 */
 Route::get('/login', function () {
@@ -44,6 +41,11 @@ Route::post('/login', function (\Illuminate\Http\Request $request) {
     ])->onlyInput('email');
 })->name('auth.login');
 
+/*
+|--------------------------------------------------------------------------
+| LOGOUT ROUTE
+|--------------------------------------------------------------------------
+*/
 Route::post('/logout', function (\Illuminate\Http\Request $request) {
     Auth::logout();
     $request->session()->invalidate();
@@ -58,11 +60,6 @@ Route::post('/logout', function (\Illuminate\Http\Request $request) {
 */
 Route::middleware(['auth', SessionTimeout::class])->group(function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | DASHBOARD (ADMIN & SISWA)
-    |--------------------------------------------------------------------------
-    */
     Route::get('/dashboard', function () {
         $user = Auth::user();
 
@@ -78,47 +75,53 @@ Route::middleware(['auth', SessionTimeout::class])->group(function () {
     | GROUP ADMIN & KEPSEK
     |--------------------------------------------------------------------------
     */
-    Route::middleware(['role:admin,kepsek'])->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['role:admin,kepsek'])
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
 
-        Route::resource('siswa', SiswaController::class);
+            Route::resource('siswa', \App\Http\Controllers\SiswaController::class);
 
-        Route::get('/tagihan/create', [TagihanController::class, 'create'])->name('tagihan.create');
-        Route::post('/tagihan', [TagihanController::class, 'store'])->name('tagihan.store');
-        Route::get('/tagihan', [TagihanController::class, 'index'])->name('tagihan.index');
+            Route::get('/tagihan/create', [TagihanController::class, 'create'])
+                ->name('tagihan.create');
 
-        Route::get('/tagihan/massal/create', [TagihanController::class, 'createMassal'])->name('tagihan.massal.create');
-        Route::post('/tagihan/massal/store', [TagihanController::class, 'storeMassal'])->name('tagihan.massal.store');
+            Route::post('/tagihan', [TagihanController::class, 'store'])
+                ->name('tagihan.store');
 
-        Route::get('/tagihan/{tagihan}/edit', [TagihanController::class, 'edit'])->name('tagihan.edit');
-        Route::put('/tagihan/{tagihan}', [TagihanController::class, 'update'])->name('tagihan.update');
-        Route::delete('/tagihan/{tagihan}', [TagihanController::class, 'destroy'])->name('tagihan.destroy');
-
-        Route::get('/pembayaran/{id}/cetak', [PembayaranController::class, 'cetak'])->name('pembayaran.cetak');
-        Route::resource('pembayaran', PembayaranController::class);
-
-        Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
-        Route::get('/laporan/cetak', [LaporanController::class, 'cetak'])->name('laporan.cetak');
-        Route::get('/laporan/detail/{kelas}/{jurusan}', [LaporanController::class, 'detailKelas'])
-            ->name('laporan.detail');
-    });
+            Route::get('/tagihan', [TagihanController::class, 'index'])
+                ->name('tagihan.index');
+        });
 
     /*
     |--------------------------------------------------------------------------
     | GROUP KHUSUS SISWA
     |--------------------------------------------------------------------------
     */
-    Route::middleware(['role:siswa'])->prefix('siswa')->name('siswa.')->group(function () {
+    Route::middleware(['role:siswa'])
+        ->prefix('siswa')
+        ->name('siswa.')
+        ->group(function () {
 
-        // DASHBOARD SISWA
-        Route::get('/dashboard', [SiswaDashboardController::class, 'index'])
-            ->name('dashboard');
+            // Dashboard siswa
+            Route::get('/dashboard', [SiswaDashboardController::class, 'index'])
+                ->name('dashboard');
 
-        // TAGIHAN SISWA (BELUM VIEW, BELUM DATABASE)
-        Route::get('/tagihan', [SiswaTagihanController::class, 'index'])
-            ->name('tagihan.index');
+            // Daftar tagihan
+            Route::get('/tagihan', [SiswaTagihanController::class, 'index'])
+                ->name('tagihan.index');
 
-        Route::get('/tagihan/{id}', [SiswaTagihanController::class, 'show'])
-            ->name('tagihan.show');
-    });
+            // Detail tagihan
+            Route::get('/tagihan/{id}', [SiswaTagihanController::class, 'show'])
+                ->name('tagihan.show');
 
+            // Pilih metode pembayaran
+            Route::get('/pembayaran/{id}/metode',
+                [SiswaTagihanController::class, 'pilihMetode'])
+                ->name('pembayaran.metode');
+
+            // Proses pembayaran (simulasi)
+            Route::post('/pembayaran/{id}/proses',
+                [SiswaTagihanController::class, 'prosesPembayaran'])
+                ->name('pembayaran.proses');
+        });
 });

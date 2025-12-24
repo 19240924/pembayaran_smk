@@ -13,7 +13,10 @@
 
     <div class="card mb-4 border-0 shadow-sm rounded-3">
         <div class="card-body">
-            <h6 class="fw-bold mb-3 text-secondary"><i class="bi bi-funnel"></i> Filter Pencarian</h6>
+            <h6 class="fw-bold mb-3 text-secondary">
+                <i class="bi bi-funnel"></i> Filter Pencarian
+            </h6>
+
             <form action="" method="GET">
                 <div class="row g-3">
                     <div class="col-md-2">
@@ -25,7 +28,7 @@
                             <option value="XII">Kelas XII</option>
                         </select>
                     </div>
-                    
+
                     <div class="col-md-2">
                         <label class="form-label small text-muted fw-bold">Jurusan</label>
                         <select class="form-select bg-light border-0" name="jurusan">
@@ -35,7 +38,7 @@
                             <option value="TMI">TMI</option>
                         </select>
                     </div>
-                    
+
                     <div class="col-md-3">
                         <label class="form-label small text-muted fw-bold">Periode Bulan</label>
                         <select class="form-select bg-light border-0" name="bulan">
@@ -54,7 +57,7 @@
                             <option value="Desember">Desember</option>
                         </select>
                     </div>
-                    
+
                     <div class="col-md-3">
                         <label class="form-label small text-muted fw-bold">Jenis Pembayaran</label>
                         <select class="form-select bg-light border-0" name="jenis_pembayaran">
@@ -71,7 +74,7 @@
                         <select class="form-select bg-light border-0" name="status">
                             <option value="">Semua Status</option>
                             <option value="belum_lunas">Belum Lunas</option>
-                            <option value="menunggak">Menunggak</option>
+                            <option value="lunas">Lunas</option>
                         </select>
                     </div>
 
@@ -101,6 +104,7 @@
 </div>
 
         </div>
+
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -115,64 +119,43 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {{-- MULAI LOOPING DATA DARI DATABASE --}}
-                        @forelse($tagihans as $key => $tagihan)
+                        @forelse ($tagihans as $key => $tagihan)
                             <tr>
-                                {{-- 1. Nomor Urut --}}
                                 <td class="ps-4">{{ $tagihans->firstItem() + $key }}</td>
-                                
-                                {{-- 2. Nama Siswa --}}
+
                                 <td>
-                                    <div class="fw-bold text-dark">{{ $tagihan->nama_siswa }}</div>
+                                    <div class="fw-bold">{{ $tagihan->nama_siswa }}</div>
                                     <small class="text-muted">ID: #{{ $tagihan->id }}</small>
                                 </td>
-                                
-                                {{-- 3. Kelas & Jurusan --}}
+
                                 <td>{{ $tagihan->kelas }} - {{ $tagihan->jurusan }}</td>
-                                
-                                {{-- 4. Periode --}}
+
                                 <td>{{ $tagihan->bulan }} {{ $tagihan->tahun }}</td>
-                                
-                                {{-- 5. Jenis & Nominal --}}
+
                                 <td>
                                     <div class="fw-bold">{{ $tagihan->jenis_pembayaran }}</div>
-                                    <small class="text-success fw-bold">Rp {{ number_format($tagihan->nominal, 0, ',', '.') }}</small>
+                                    <small class="text-success fw-bold">
+                                        Rp {{ number_format($tagihan->nominal, 0, ',', '.') }}
+                                    </small>
                                 </td>
-                                
-                                {{-- 6. Status (Logika Otomatis: Cek Tanggal Jatuh Tempo) --}}
-                                <td>
-                                    @php
-                                        // Ubah nama bulan jadi angka
-                                        $bulanIndo = ['Januari'=>1, 'Februari'=>2, 'Maret'=>3, 'April'=>4, 'Mei'=>5, 'Juni'=>6, 'Juli'=>7, 'Agustus'=>8, 'September'=>9, 'Oktober'=>10, 'November'=>11, 'Desember'=>12];
-                                        $angkaBulan = $bulanIndo[$tagihan->bulan] ?? date('m');
-                                        
-                                        // Tetapkan Jatuh Tempo tanggal 10
-                                        $jatuhTempo = \Carbon\Carbon::createFromDate($tagihan->tahun, $angkaBulan, 10)->endOfDay();
-                                        $hariIni = \Carbon\Carbon::now();
-                                    @endphp
 
-                                    @if($tagihan->status == 'lunas')
+                                {{-- STATUS FINAL (AMAN & SIMPLE) --}}
+                                <td>
+                                    @if ($tagihan->status === 'lunas')
                                         <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">
                                             <i class="bi bi-check-circle me-1"></i> Lunas
                                         </span>
-                                    @elseif($hariIni->gt($jatuhTempo) && $tagihan->status != 'lunas')
-                                        {{-- Kalau lewat tgl 10 & belum lunas = Menunggak --}}
-                                        <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill">
-                                            <i class="bi bi-x-circle me-1"></i> Menunggak
-                                        </span>
                                     @else
-                                        {{-- Kalau belum lewat tgl 10 = Belum Lunas --}}
-                                        <span class="badge bg-warning text-dark bg-opacity-25 px-3 py-2 rounded-pill">
-                                            <i class="bi bi-exclamation-circle me-1"></i> Belum Lunas
+                                        <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill">
+                                            <i class="bi bi-x-circle me-1"></i> Belum Lunas
                                         </span>
                                     @endif
                                 </td>
                             </tr>
                         @empty
-                            {{-- TAMPILAN JIKA DATA KOSONG --}}
                             <tr>
                                 <td colspan="6" class="text-center py-5 text-muted">
-                                    <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                                    <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
                                     Belum ada daftar tagihan
                                 </td>
                             </tr>
@@ -180,7 +163,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class="d-flex justify-content-end p-3">
                 {{ $tagihans->links() }}
             </div>

@@ -1,66 +1,121 @@
-@extends('layouts.app')
+<?php
 
-@section('content')
-<div class="container mt-4">
-    <h4 class="mb-4">Daftar Tagihan Saya</h4>
+namespace App\Http\Controllers;
 
-    <div class="card">
-        <div class="card-body">
+use Illuminate\Http\Request;
+use App\Models\TagihanAdmin;
+use App\Models\Siswa;
 
-            <table class="table table-bordered align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>No</th>
-                        <th>Tagihan</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th width="120">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($tagihan as $item)
-                    <tr>
-                        <td>{{ $loop->iteration }}</td>
+class TagihanController extends Controller
+{
+    /**
+     * Tampilkan daftar tagihan (ADMIN) + FILTER
+     */
+    public function index(Request $request)
+    {
+        // Query awal
+        $query = TagihanAdmin::query();
 
-                        <td>
-                            {{ $item['nama'] }} <br>
+        // Filter Kelas
+        if ($request->filled('kelas')) {
+            $query->where('kelas', $request->kelas);
+        }
 
-                            {{-- PERIODE (opsional, tidak bikin error) --}}
-                            @if (!empty($item['periode']))
-                                <small class="text-muted">
-                                    Periode: {{ $item['periode'] }}
-                                </small>
-                            @endif
-                        </td>
+        // Filter Jurusan
+        if ($request->filled('jurusan')) {
+            $query->where('jurusan', $request->jurusan);
+        }
 
-                        <td>
-                            Rp {{ number_format($item['total'], 0, ',', '.') }}
-                        </td>
+        // Filter Bulan
+        if ($request->filled('bulan')) {
+            $query->where('bulan', $request->bulan);
+        }
 
-                        <td>
-                            <span class="badge bg-danger">
-                                {{ $item['status'] }}
-                            </span>
-                        </td>
+        // Filter Jenis Pembayaran
+        if ($request->filled('jenis_pembayaran')) {
+            $query->where('jenis_pembayaran', 'like', '%' . $request->jenis_pembayaran . '%');
+        }
 
-                        <td>
-                            <a href="{{ route('siswa.tagihan.show', $item['id']) }}"
-                               class="btn btn-sm btn-primary">
-                                Detail
-                            </a>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="5" class="text-center">
-                            Tidak ada tagihan
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+        // Ambil data
+        $tagihans = $query->latest()->paginate(10);
 
-        </div>
-    </div>
-</div>
-@endsection
+        return view('admin.tagihan.index', compact('tagihans'));
+    }
+
+    public function create()
+    {
+        return view('admin.tagihan.create');
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nama_siswa' => 'required|string',
+            'kelas' => 'required|string',
+            'jurusan' => 'required|string',
+            'bulan' => 'required|string',
+            'jenis_pembayaran' => 'required|string',
+            'nominal' => 'required|numeric',
+        ]);
+
+        TagihanAdmin::create([
+            'nama_siswa' => $request->nama_siswa,
+            'kelas' => $request->kelas,
+            'jurusan' => $request->jurusan,
+            'bulan' => $request->bulan,
+            'tahun' => $request->tahun ?? date('Y'),
+            'jenis_pembayaran' => $request->jenis_pembayaran,
+            'nominal' => $request->nominal,
+            'keterangan' => $request->keterangan,
+            'status' => 'belum_lunas',
+        ]);
+
+        return redirect()
+            ->route('admin.tagihan.index')
+            ->with('success', 'Tagihan berhasil dibuat!');
+    }
+
+    public function createMassal()
+    {
+        return view('admin.tagihan.create-massal');
+    }
+
+    public function storeMassal(Request $request)
+    {
+        $request->validate([
+            'target' => 'required|in:kelas,angkatan',
+            'kelas' => 'required_if:target,kelas',
+            'angkatan' => 'required_if:target,angkatan',
+            'bulan' => 'required',
+            'jenis_pembayaran' => 'required',
+            'nominal' => 'required|numeric',
+        ]);
+
+        // PER KELAS
+        if ($request->target === 'kelas') {
+            $siswas = Siswa::where('kelas', $request->kelas)->get();
+        }
+
+        // PER ANGKATAN
+        if ($request->target === 'angkatan') {
+            $siswas = Siswa::where('angkatan', $request->angkatan)->get();
+        }
+
+        foreach ($siswas as $siswa) {
+            TagihanAdmin::create([
+                'nama_siswa' => $siswa->nama,
+                'kelas' => $siswa->kelas,
+                'jurusan' => $siswa->jurusan,
+                'bulan' => $request->bulan,
+                'tahun' => $request->tahun ?? date('Y'),
+                'jenis_pembayaran' => $request->jenis_pembayaran,
+                'nominal' => $request->nominal,
+                'status' => 'belum_lunas',
+            ]);
+        }
+
+        return redirect()
+            ->route('admin.tagihan.index')
+            ->with('success', 'Tagihan massal berhasil dibuat!');
+    }
+}
