@@ -1,121 +1,76 @@
-<?php
+@extends('layouts.app')
 
-namespace App\Http\Controllers;
+@section('title', 'Daftar Tagihan Siswa')
 
-use Illuminate\Http\Request;
-use App\Models\TagihanAdmin;
-use App\Models\Siswa;
+@section('content')
+<div class="container mt-4">
 
-class TagihanController extends Controller
-{
-    /**
-     * Tampilkan daftar tagihan (ADMIN) + FILTER
-     */
-    public function index(Request $request)
-    {
-        // Query awal
-        $query = TagihanAdmin::query();
+    <h4 class="mb-3">Daftar Tagihan Siswa</h4>
 
-        // Filter Kelas
-        if ($request->filled('kelas')) {
-            $query->where('kelas', $request->kelas);
-        }
+    <div class="card shadow-sm">
+        <div class="card-body">
 
-        // Filter Jurusan
-        if ($request->filled('jurusan')) {
-            $query->where('jurusan', $request->jurusan);
-        }
+            <div class="mb-3">
+                <strong>{{ auth()->user()->name }}</strong><br>
+                <small>NIS: {{ auth()->user()->nis ?? '-' }}</small>
+            </div>
 
-        // Filter Bulan
-        if ($request->filled('bulan')) {
-            $query->where('bulan', $request->bulan);
-        }
+            <table class="table table-striped table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nama Tagihan</th>
+                        <th>Jatuh Tempo</th>
+                        <th>Nominal</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
 
-        // Filter Jenis Pembayaran
-        if ($request->filled('jenis_pembayaran')) {
-            $query->where('jenis_pembayaran', 'like', '%' . $request->jenis_pembayaran . '%');
-        }
+                <tbody>
+                    @forelse ($tagihan as $t)
+                    @php
+                        // fleksibel: bisa object atau array
+                        $nama     = $t['nama_tagihan'] ?? $t->nama_tagihan ?? $t['nama'] ?? $t->nama ?? '-';
+                        $tempo    = $t['jatuh_tempo'] ?? $t->jatuh_tempo ?? '-';
+                        $nominal  = $t['nominal'] ?? $t->nominal ?? 0;
+                        $status   = $t['status'] ?? $t->status ?? 'belum';
+                        $id       = $t['id'] ?? $t->id ?? null;
+                    @endphp
 
-        // Ambil data
-        $tagihans = $query->latest()->paginate(10);
+                    <tr>
+                        <td>{{ $nama }}</td>
+                        <td>{{ $tempo }}</td>
+                        <td>Rp {{ number_format($nominal, 0, ',', '.') }}</td>
 
-        return view('admin.tagihan.index', compact('tagihans'));
-    }
+                        <td>
+                            <span class="badge bg-{{ $status == 'belum' ? 'danger' : 'success' }}">
+                                {{ ucfirst($status) }}
+                            </span>
+                        </td>
 
-    public function create()
-    {
-        return view('admin.tagihan.create');
-    }
+                        <td>
+                            @if ($status == 'belum' && $id)
+                                <a href="{{ route('siswa.tagihan.bayar', $id) }}"
+                                   class="btn btn-primary btn-sm">
+                                    Bayar
+                                </a>
+                            @else
+                                <span class="text-muted">Lunas</span>
+                            @endif
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">
+                            Tidak ada tagihan
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'nama_siswa' => 'required|string',
-            'kelas' => 'required|string',
-            'jurusan' => 'required|string',
-            'bulan' => 'required|string',
-            'jenis_pembayaran' => 'required|string',
-            'nominal' => 'required|numeric',
-        ]);
+        </div>
+    </div>
 
-        TagihanAdmin::create([
-            'nama_siswa' => $request->nama_siswa,
-            'kelas' => $request->kelas,
-            'jurusan' => $request->jurusan,
-            'bulan' => $request->bulan,
-            'tahun' => $request->tahun ?? date('Y'),
-            'jenis_pembayaran' => $request->jenis_pembayaran,
-            'nominal' => $request->nominal,
-            'keterangan' => $request->keterangan,
-            'status' => 'belum_lunas',
-        ]);
-
-        return redirect()
-            ->route('admin.tagihan.index')
-            ->with('success', 'Tagihan berhasil dibuat!');
-    }
-
-    public function createMassal()
-    {
-        return view('admin.tagihan.create-massal');
-    }
-
-    public function storeMassal(Request $request)
-    {
-        $request->validate([
-            'target' => 'required|in:kelas,angkatan',
-            'kelas' => 'required_if:target,kelas',
-            'angkatan' => 'required_if:target,angkatan',
-            'bulan' => 'required',
-            'jenis_pembayaran' => 'required',
-            'nominal' => 'required|numeric',
-        ]);
-
-        // PER KELAS
-        if ($request->target === 'kelas') {
-            $siswas = Siswa::where('kelas', $request->kelas)->get();
-        }
-
-        // PER ANGKATAN
-        if ($request->target === 'angkatan') {
-            $siswas = Siswa::where('angkatan', $request->angkatan)->get();
-        }
-
-        foreach ($siswas as $siswa) {
-            TagihanAdmin::create([
-                'nama_siswa' => $siswa->nama,
-                'kelas' => $siswa->kelas,
-                'jurusan' => $siswa->jurusan,
-                'bulan' => $request->bulan,
-                'tahun' => $request->tahun ?? date('Y'),
-                'jenis_pembayaran' => $request->jenis_pembayaran,
-                'nominal' => $request->nominal,
-                'status' => 'belum_lunas',
-            ]);
-        }
-
-        return redirect()
-            ->route('admin.tagihan.index')
-            ->with('success', 'Tagihan massal berhasil dibuat!');
-    }
-}
+</div>
+@endsection

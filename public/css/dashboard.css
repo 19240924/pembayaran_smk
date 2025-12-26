@@ -1,17 +1,27 @@
+/* ===============================
+   GLOBAL
+=================================*/
 body {
     background-color: #f5f7fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* ===============================
+   SIDEBAR
+=================================*/
 .sidebar {
     background-color: #1e3a8a;
     min-height: 100vh;
     color: white;
     width: 220px;
+    padding: 20px 15px;
+    box-shadow: 2px 0 15px rgba(0,0,0,0.15);
 }
 
 .sidebar h4 {
     color: white;
     margin-bottom: 20px;
+    font-weight: 600;
 }
 
 .sidebar a {
@@ -19,15 +29,162 @@ body {
     text-decoration: none;
     display: block;
     padding: 10px 15px;
-    margin-bottom: 5px;
-    border-radius: 5px;
+    margin-bottom: 6px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all .25s;
 }
 
 .sidebar a:hover {
     background-color: #3749a0;
+    transform: translateX(4px);
 }
 
+/* ===============================
+   ACTIVE MENU (UNGU)
+=================================*/
+/* Override bootstrap btn.active */
+.btn.active {
+    background: linear-gradient(135deg,#667eea,#764ba2) !important;
+    color:#fff !important;
+    font-weight: 600;
+    border:none !important;
+}
+
+/* Khusus sidebar */
+.sidebar a.btn.active,
+.sidebar .btn.btn-light.active {
+    background: linear-gradient(135deg,#667eea,#764ba2) !important;
+    color:#fff !important;
+    border-radius:12px;
+    border:none;
+}
+
+/* Hover pada menu aktif (lebih terang sedikit) */
+.sidebar a.active:hover {
+    background: linear-gradient(135deg,#7b82ff,#8a6cff) !important;
+}
+
+/* ===============================
+   CARD / CONTENT
+=================================*/
 .card {
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 14px;
+    border: none;
+    background: white;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #eef0f3;
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+/* ===============================
+   INFO BADGE
+=================================*/
+.info-badge {
+    background: #fff3cd;
+    color: #856404;
+    padding: 7px 14px;
+    border-radius: 18px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ===============================
+   EMPTY STATE
+=================================*/
+.empty-state {
+    text-align: center;
+    padding: 45px 20px;
+    color: #8c8c8c;
+}
+
+.empty-state-icon {
+    font-size: 72px;
+    margin-bottom: 15px;
+    opacity: 0.9;
+}
+
+.empty-state h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #555;
+}
+
+/* ===============================
+   TABLE STYLE
+=================================*/
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #f8f9fa;
+    padding: 14px;
+    text-align: left;
+    font-weight: 600;
+    color: #555;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+}
+
+td {
+    padding: 14px;
+    border-bottom: 1px solid #eee;
+    color: #666;
+}
+
+tr:hover td {
+    background: #f8f9fa;
+}
+
+/* ===============================
+   STATUS BADGES
+=================================*/
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 18px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-lunas {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-belum {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* ===============================
+   HEADER WELCOME
+=================================*/
+.header-welcome h1 {
+    color: #fff;
+    font-weight: 700;
+}
+
+.header-welcome p {
+    color: #fff;
+    opacity: .9;
+    font-size: 13px;
 }

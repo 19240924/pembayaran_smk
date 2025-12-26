@@ -118,4 +118,20 @@ class TagihanController extends Controller
             ->route('admin.tagihan.index')
             ->with('success', 'Tagihan massal berhasil dibuat!');
     }
+
+    public function verifikasi()
+    {
+             $tagihan = Tagihan::where('status', 'Menunggu Konfirmasi')->get();
+        return view('admin.tagihan.verifikasi', compact('tagihan'));
+    }
+
+    public function setStatus($id, $status)
+    {
+             $tagihan = Tagihan::findOrFail($id);
+             $tagihan->status = $status;
+             $tagihan->save();
+
+         return back()->with('success', 'Status tagihan diperbarui');
+    }
+
 }

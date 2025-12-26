@@ -5,10 +5,10 @@
 @section('content')
 <div class="container-siswa">
 
-    {{-- Judul --}}
+    {{-- Judul Halaman --}}
     <h1 class="title-page">Daftar Tagihan Siswa</h1>
 
-    {{-- Info Siswa --}}
+    {{-- Informasi Siswa --}}
     <div class="card-siswa">
         <p class="label">Nama: {{ auth()->user()->name }}</p>
         <p class="sub-label">NIS: {{ auth()->user()->nis ?? '-' }}</p>
@@ -33,26 +33,19 @@
                     <td>{{ $t->nama_tagihan }}</td>
                     <td>{{ $t->jatuh_tempo }}</td>
                     <td>Rp {{ number_format($t->nominal) }}</td>
-
                     <td>
                         <span class="status {{ $t->status }}">
                             {{ ucfirst($t->status) }}
                         </span>
                     </td>
-
                     <td>
                         @if ($t->status == 'belum')
-                            {{-- ROUTE BAYAR VALID --}}
-                            <a href="{{ route('siswa.pembayaran.metode', $t->id) }}"
-                               class="btn-bayar">
-                                Bayar
-                            </a>
+                            <a href="{{ route('siswa.tagihan.bayar', $t->id) }}" class="btn-bayar">Bayar</a>
                         @else
                             <span class="text-muted">-</span>
                         @endif
                     </td>
                 </tr>
-
                 @empty
                 <tr>
                     <td colspan="5" class="empty-row">Tidak ada tagihan</td>
