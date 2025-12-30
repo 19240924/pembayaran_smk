@@ -51,7 +51,8 @@
                 <i class="bi bi-bar-chart"></i> Laporan
             </a>
 
-            <a href="#" class="nav-link">
+            <a href="{{ route('profile') }}"
+             class="nav-link {{ request()->routeIs('profile*') ? 'active' : '' }}">
                 <i class="bi bi-gear"></i> Pengaturan
             </a>
         </nav>

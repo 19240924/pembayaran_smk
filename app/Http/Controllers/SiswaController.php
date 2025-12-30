@@ -26,9 +26,11 @@ class SiswaController extends Controller
     {
         $request->validate([
             'nis' => 'required|unique:siswas,nis',
-            'nama' => 'required|string|max:255',
-            'kelas' => 'required|string|max:50',
-            'email' => 'nullable|email|unique:siswas,email',
+            'nama' => 'required',
+            'kelas' => 'required',
+            'jurusan' => 'required',
+            'angkatan' => 'required|numeric',
+            'email' => 'nullable|email',
         ]);
 
         Siswa::create($request->all());

@@ -9,7 +9,7 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\SiswaTagihanController; // Controller untuk Siswa Login
 use App\Http\Controllers\Siswa\SiswaDashboardController;
-
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -134,5 +134,21 @@ Route::middleware(['auth'])->group(function() {
         // Route::get('/siswa/tagihan/{id}/bayar', [SiswaTagihanController::class, 'bayar'])->name('siswa.tagihan.bayar');
         // Route::post('/siswa/tagihan/{id}/bayar', [SiswaTagihanController::class, 'prosesBayar'])->name('siswa.tagihan.proses');
     });
+
+
+    Route::middleware(['auth', SessionTimeout::class])->group(function () {
+
+    // ======================
+    // PROFILE ADMIN
+    // ======================
+    Route::get('/profile', [ProfileController::class, 'index'])
+        ->name('profile');
+
+    Route::put('/profile', [ProfileController::class, 'updateProfile'])
+        ->name('profile.update');
+
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])
+        ->name('profile.password');
+});
 
 });
