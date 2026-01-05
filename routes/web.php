@@ -8,6 +8,7 @@ use App\Http\Controllers\TagihanController;
 use App\Http\Controllers\SiswaTagihanController;
 use App\Http\Controllers\Siswa\SiswaDashboardController;
 use App\Http\Controllers\SiswaController;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -156,4 +157,22 @@ Route::middleware(['auth', SessionTimeout::class])->group(function () {
             [SiswaTagihanController::class,'profil'])
             ->name('profil');
     });
+});
+
+
+    Route::middleware(['auth', SessionTimeout::class])->group(function () {
+
+    // ======================
+    // PROFILE ADMIN
+    // ======================
+    Route::get('/profile', [ProfileController::class, 'index'])
+        ->name('profile');
+
+    Route::put('/profile', [ProfileController::class, 'updateProfile'])
+        ->name('profile.update');
+
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])
+        ->name('profile.password');
+});
+
 });
